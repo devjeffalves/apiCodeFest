@@ -1,30 +1,20 @@
 
 //Importar o pacote express para criar o servidor
 const express = require('express');
-
-import userController from "../controller/userController";
-
 //Instancia o express na variável router
 const router = express.Router();
 
+import userController from "../controller/userController";
+
+
+
 //Listar usuários
-router.get('/users/', userController.getUsers);
+router.get('/users/', userController.listUsers);
 //Cadastrar usuários
-router.post('/users/', userController.postUsers);
+router.post('/users/', userController.createUsers);
 //Atualizar usuários
-router.put('/user/:id', userController.putUser);
+router.put('/user/:id', userController.editUser);
 //excluir usuários
-router.delete ('/user/:id', userController.deleteUser);
-
-
-/*router.post('/users', (req: any, res: any) => {
-    console.log(req.body.cidade);
-    let user = {
-        nome: req.body.nome,
-        idade: req.body.idade,
-        cidade: req.body.cidade
-    }
-    */
-
+router.delete('/user/:id', userController.deleteUser);
 
 export default router;

@@ -1,62 +1,79 @@
 import { Request, Response } from "express";
-
-//Importar o pacote File system para manipular arquivos
-const fs = require('fs'); // Precisa do arquivo em formato de String
-//Importar banca do dados de extensão .json
-const data: string= './database.json';
-
+import db from '../config/database';
 
 //Listar usuários
-async function getUsers(req: Request, res: Response){
-    const jsonData = fs.readFileSync(data);//Chamando a função do pacote fs
-        res.send(JSON.parse(jsonData));
+async function listUsers(req: Request, res: Response){
+   db.connection.query('SELECT * FROM CLIENTS', (err, 
+    results) => {
+        if(err) {
+    res.json({
+        success: false
+    });
+        
+}else {
+res.json({
+    success: true,
+    message: 'Listagem de usuários realizada com sucesso!',
+    data: results
+});
+}
+    });
 }
 //Cadastrar Usuários
-async function postUsers(req: Request, res: Response){
-    const jsonDataBase = fs.readFileSync(data);
-    
-    //analisa string JSON e transforma em um objeto JavaScript
-    let content = JSON.parse(jsonDataBase);
-    
-    //verifica a quantidade de objetos na base de dados
-    let index: number = Object.keys(content).length;
-   
-    //criar uma nova chave de objeto somando +1 do total de objetos 
-    content[index++] = req.body;
-    
-    //analisa um objeto em JavaScript e transforma em uma string JSON
-    const values = JSON.stringify(content);
-    
-    //lê o arquivo da base de dados e adiciona o novo objeto
-    fs.writeFileSync(data, values);
-    
-    //retorno amigável para o usuário que chamou o endpoint
-    res.status(201).send("User '" + req.body.username + "' registered successfulll!");
+async function createUsers(req: Request, res: Response) {
+    const querysql = `INSERT INTO CLIENTS (DS_NAME, NM_CELLPHONE, DS_STATUS) 
+    VALUES(?,?,?)`;
+    const params = Array(
+        req.body.DS_NAME,
+        req.body.NM_CELLPHONE,
+        req.body.DS_STATUS
+    )
+
+    db.connection.query(querysql, params, (err, results) => {
+        res.json({
+            success: true,
+            message: 'Cadastro realizado com sucesso!',
+            data: results
+        });
+    })
 }
-//Atualizar usuários
-async function putUser (req:any, res: any) {
-    const jsonDataBase = fs.readFileSync(data);  
-    const userId = req.params.id; 
-    let content = JSON.parse(jsonDataBase);
-    content[userId] = req.body;
-    const values = JSON.stringify(content);
-    fs.writeFileSync(data, values);
-    res.send(`User with id ${userId} has been updated`);
+//Atualizar clientes
+async function editUser(req: Request, res: Response) {
+    const idUser = req.params.id;
+    const querysql = `UPDATE clients SET DS_NAME = ?,
+    NM_CELLPHONE = ?, DS_STATUS =? WHERE ID_CLIENT = ?`;
+
+    const params = Array(
+        req.body.DS_NAME,
+        req.body.NM_CELLPHONE,
+        req.body.DS_STATUS,
+        req.params.id
+    );
+    db.connection.query(querysql, params, (err, results) => {
+        res.json({
+            success: true,
+            message: 'Atualização realizada com sucesso!',
+            data: results
+        });
+    })
 }
+
 //excluir usuários 
-async function deleteUser (req: any, res: any) {
-    const jsonDataBase = fs.readFileSync(data);  
-    const userId = req.params.id; 
-    let content = JSON.parse(jsonDataBase);
-    delete content[userId];
-    const values = JSON.stringify(content);
-    fs.writeFileSync(data, values);
-    res.send(`User with id ${userId} has been deleted!`);
-};
+async function deleteUser (req:Request, res: Response) { 
+    const queryString = `DELETE FROM clients WHERE
+    ID_CLIENT = ?`;
+    db.connection.query(queryString, [req.params.id], (err, results) => {
+            res.json({
+                success: true,
+                message: 'removido'
+            });
+    })
+}
+
 
 export default {
-    getUsers,
-    postUsers,
-    putUser,
+    listUsers,
+    createUsers,
+    editUser,
     deleteUser
-    }
+}
